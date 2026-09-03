@@ -6,6 +6,9 @@ rust-version = "1.97"
 description = "Consistent hashing, routing, and cluster membership for distributed Rust systems."
 keywords = ["consistent-hashing", "hashring", "distributed-systems", "sharding", "membership"]
 categories = ["data-structures", "algorithms", "network-programming", "distributed-systems"]
+license = "Apache-2.0"
+repository = "https://github.com/vllst-io/tattler-rs"
+documentation = "https://docs.rs/tattler"
 
 [features]
 default = ["ring"]
