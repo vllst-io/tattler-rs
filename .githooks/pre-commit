@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Fast pre-commit gate: format + lint + type-check, but not the (slow) test
+# suite. Tests belong in CI; run `make verify` locally for full parity.
+set -euo pipefail
+
+make pre-commit

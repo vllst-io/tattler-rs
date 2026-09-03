@@ -1,0 +1,18 @@
+[package]
+name = "tattler"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.97"
+description = "Consistent hashing, routing, and cluster membership for distributed Rust systems."
+keywords = ["consistent-hashing", "hashring", "distributed-systems", "sharding", "membership"]
+categories = ["data-structures", "algorithms", "network-programming", "distributed-systems"]
+
+[features]
+default = ["ring"]
+ring = ["dep:bytes", "dep:twox-hash"]
+memberlist = []
+router = ["ring"]
+
+[dependencies]
+bytes = { version = "1.12.1", optional = true }
+twox-hash = { version = "2.1.4", optional = true }
