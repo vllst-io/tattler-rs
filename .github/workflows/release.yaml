@@ -32,7 +32,9 @@ jobs:
         run: cargo install cargo-release --locked
 
       - name: Verify before release
-        run: make verify
+        run: |
+          make init
+          make verify
 
       - name: Configure Git bot
         run: |
