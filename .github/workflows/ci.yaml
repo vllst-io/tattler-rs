@@ -12,7 +12,7 @@ env:
   RUSTFLAGS: -Dwarnings
 
 jobs:
-  test:
+  test-and-check:
     name: test / ${{ matrix.toolchain }}
     runs-on: ubuntu-latest
     strategy:
@@ -27,19 +27,11 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
-      # Full local-CI parity: fmt-check + clippy + check + test.
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-hack,cargo-audit
       - run: make verify
 
-  check-features:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-      - run: |
-          cargo install cargo-hack --locked
-          cargo hack check --each-feature
-          cargo hack check --powerset
 
   doc:
     runs-on: ubuntu-latest

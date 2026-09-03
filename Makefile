@@ -31,7 +31,8 @@ clippy-fix: ## Auto-apply clippy suggestions
 	$(CARGO) clippy $(FEATURES) --all-targets --fix --allow-dirty --allow-staged
 
 check: ## Type-check every feature target
-	$(CARGO) check $(FEATURES) --all-targets
+	$(CARGO) hack check --each-feature
+	$(CARGO) hack check --feature-powerset
 
 test: ## Run tests
 	$(CARGO) test $(FEATURES)
