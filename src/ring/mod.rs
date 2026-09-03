@@ -43,13 +43,16 @@ pub trait Ring<P: Clone, M: Member<P>> {
     fn add_node(&mut self, member: M, replicas: usize);
     fn delete_node(&mut self, member: M);
 
-    /// Resolves `key` to the first node clockwise from its hash.
-    fn get_node(&self, key: &[u8]) -> Option<&M>;
+    /// Resolves `key` to the physical node responsible for it — the first node
+    /// clockwise from the key's hash. Virtual points are derived data, so a
+    /// lookup returns the physical node, never the virtual point. `None` if the
+    /// ring is empty.
+    fn get_node(&self, key: &[u8]) -> Option<M>;
 
     /// Resolves `key` to the `k` *distinct physical* successors clockwise from
     /// its hash, for replication / read-repair. Returns fewer than `k` only if
     /// the cluster has fewer than `k` nodes; empty if `k == 0`.
-    fn get_nodes(&self, key: &[u8], k: usize) -> Vec<&M>;
+    fn get_nodes(&self, key: &[u8], k: usize) -> Vec<M>;
 
     /// Whether `member` (a physical node) is currently on the ring.
     fn contains_node(&self, member: &M) -> bool;
@@ -231,7 +234,7 @@ impl<H: Ord + Clone, M: Member<usize>> Ring<usize, M> for ConsistentHashRing<H, 
         self.replica_counts.remove(&name);
     }
 
-    fn get_node(&self, key: &[u8]) -> Option<&M> {
+    fn get_node(&self, key: &[u8]) -> Option<M> {
         if self.ring.is_empty() {
             return None;
         }
@@ -241,10 +244,10 @@ impl<H: Ord + Clone, M: Member<usize>> Ring<usize, M> for ConsistentHashRing<H, 
             .range(hash..)
             .next()
             .or_else(|| self.ring.iter().next())
-            .map(|(_, v)| v)
+            .map(|(_, v)| v.physical_from_virtual())
     }
 
-    fn get_nodes(&self, key: &[u8], k: usize) -> Vec<&M> {
+    fn get_nodes(&self, key: &[u8], k: usize) -> Vec<M> {
         if k == 0 || self.ring.is_empty() {
             return Vec::new();
         }
@@ -265,7 +268,7 @@ impl<H: Ord + Clone, M: Member<usize>> Ring<usize, M> for ConsistentHashRing<H, 
         {
             let physical = v.physical_from_virtual();
             if seen.insert(physical.inner().clone()) {
-                out.push(v);
+                out.push(physical);
                 if out.len() == k {
                     break;
                 }
@@ -317,15 +320,12 @@ mod tests {
         let key = Bytes::from_static(b"some-key");
         let resolved = ring
             .get_node(&key)
-            .map(|v| v.physical_from_virtual().to_string())
+            .map(|v| v.to_string())
             .expect("ring is not empty");
         assert!(resolved == "node-a" || resolved == "node-b");
 
         // The same key always maps to the same node.
-        let again = ring
-            .get_node(&key)
-            .map(|v| v.physical_from_virtual().to_string())
-            .unwrap();
+        let again = ring.get_node(&key).map(|v| v.to_string()).unwrap();
         assert_eq!(resolved, again);
 
         // Removing nodes empties their replicas.
@@ -380,7 +380,7 @@ mod tests {
         // It still resolves — to the first node at the front of the ring.
         let got = ring
             .get_node(&key)
-            .map(|v| v.physical_from_virtual().to_string())
+            .map(|v| v.to_string())
             .expect("ring is not empty");
         assert!(got == "node-a" || got == "node-b");
     }
@@ -396,10 +396,7 @@ mod tests {
         // many virtual points.
         let two = ring.get_nodes(b"some-key", 2);
         assert_eq!(two.len(), 2);
-        let names: Vec<String> = two
-            .iter()
-            .map(|m| m.physical_from_virtual().to_string())
-            .collect();
+        let names: Vec<String> = two.iter().map(|m| m.to_string()).collect();
         assert_ne!(names[0], names[1]);
 
         // k > node count clamps to the number of distinct physical nodes.

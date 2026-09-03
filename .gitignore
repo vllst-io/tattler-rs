@@ -1,8 +1,8 @@
-/target
-/.local
+target
+.local
 
 # LLM
-/.claude/*.local.*
+.claude/*.local.*
 
 # IDEs
-/.idea
+.idea

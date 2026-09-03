@@ -16,3 +16,7 @@ router = ["ring"]
 [dependencies]
 bytes = { version = "1.12.1", optional = true }
 twox-hash = { version = "2.1.4", optional = true }
+
+[[example]]
+name = "cache"
+required-features = ["ring"]

@@ -53,7 +53,7 @@ impl Router {
             .read()
             .expect("ring poisoned")
             .get_node(key)
-            .map(|m| m.physical_from_virtual().inner().clone())
+            .map(|m| m.inner().clone())
     }
 }
 
