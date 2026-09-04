@@ -7,7 +7,7 @@
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 A modern Rust toolkit for building distributed systems on top of **consistent
-hashing**.
+hashing**, compatible with **data replication**, to maximize resilience and data tracking.
 
 When a cluster of nodes shares a keyspace — a distributed cache, a sharded
 key–value store, a session store — every request must be routed to the node that
